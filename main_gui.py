@@ -417,8 +417,13 @@ Modelo de Predicción ML:
         search_window.geometry("450x180")
         search_window.configure(bg="#2d2d2d")
 
-        tk.Label(search_window, text="Ingresa el nombre o apellido del piloto:", font=("Arial", 11), bg="#2d2d2d",
-                 fg="white").pack(pady=10)
+        tk.Label(
+            search_window,
+            text="Ingresa el nombre o apellido del piloto:",
+            font=("Arial", 11),
+            bg="#2d2d2d",
+            fg="white"
+        ).pack(pady=10)
 
         entry = tk.Entry(search_window, font=("Arial", 12), width=35)
         entry.pack(pady=5)
@@ -433,7 +438,7 @@ Modelo de Predicción ML:
             matches = self.drivers[
                 self.drivers['forename'].str.contains(search_term, case=False, na=False) |
                 self.drivers['surname'].str.contains(search_term, case=False, na=False)
-            ]
+                ]
 
             if matches.empty:
                 messagebox.showinfo("No encontrado", f"No se encontró ningún piloto con '{search_term}'")
@@ -443,28 +448,42 @@ Modelo de Predicción ML:
             driver_id = driver['driverId']
             driver_results = self.results[self.results['driverId'] == driver_id]
 
+            # Calcular posición promedio
+            pos_promedio = driver_results['positionOrder'].mean() if not driver_results.empty else 0
+            pos_promedio_str = f"{pos_promedio:.2f}" if pos_promedio > 0 else "N/A"
+
             result_text = f"""
-{'=' * 60}
-  {driver.get('forename', '')} {driver.get('surname', '')}
-{'=' * 60}
+    {'=' * 60}
+      {driver.get('forename', '')} {driver.get('surname', '')}
+    {'=' * 60}
 
-Nacionalidad: {driver.get('nationality', 'N/A')}
-Fecha de nacimiento: {driver.get('dob', 'N/A')}
+    Nacionalidad: {driver.get('nationality', 'N/A')}
+    Fecha de nacimiento: {driver.get('dob', 'N/A')}
 
-ESTADÍSTICAS:
-  • Carreras: {len(driver_results)}
-  • Victorias: {len(driver_results[driver_results['positionOrder'] == 1])}
-  • Podios: {len(driver_results[driver_results['positionOrder'].isin([1, 2, 3])])}
-  • Puntos totales: {driver_results['points'].sum():.1f}
-  • Posición promedio: {driver_results['positionOrder'].mean():.2f if not driver_results.empty else 'N/A'}
-"""
+    ESTADÍSTICAS:
+      • Carreras: {len(driver_results)}
+      • Victorias: {len(driver_results[driver_results['positionOrder'] == 1])}
+      • Podios: {len(driver_results[driver_results['positionOrder'].isin([1, 2, 3])])}
+      • Puntos totales: {driver_results['points'].sum():.1f}
+      • Posición promedio: {pos_promedio_str}
+    """
             search_window.destroy()
-            self.show_text_result(result_text, f"🔍 Información de {driver.get('forename','')} {driver.get('surname','')}")
+            self.show_text_result(result_text,
+                                  f"🔍 Información de {driver.get('forename', '')} {driver.get('surname', '')}")
 
-        tk.Button(search_window, text="Buscar", command=do_search, font=("Arial", 11), bg="#e10600", fg="white",
-                  cursor="hand2").pack(pady=10)
+        # ESTA LÍNEA ES CRÍTICA - EL BOTÓN
+        tk.Button(
+            search_window,
+            text="Buscar",
+            command=do_search,
+            font=("Arial", 11),
+            bg="#e10600",
+            fg="white",
+            cursor="hand2"
+        ).pack(pady=10)
+
+        # Permitir buscar con Enter
         entry.bind("<Return>", lambda e: do_search())
-
     def show_top_constructor_wins(self):
         """Muestra los equipos con más victorias"""
         if self.results.empty or self.constructors.empty:
